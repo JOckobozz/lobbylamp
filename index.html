@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lobby Lamp — Your own direct-booking page. Keep the commission.</title>
+<meta name="description" content="We move independent motels and inns off OTA dependence: your own direct-booking page powered by The Continental, your own Stripe, your own guest list — with ads that fill it.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f4f4f2; --cream:#fffdf7; --ink:#06162d; --muted:#646c78;
+  --line:#d8d5cc; --gold:#c9a227;--gold-ink:#816814;
+  --nav-bg:rgba(244,244,242,.92);
+  --grid:rgba(6,22,45,.035);
+  --grid2:rgba(6,22,45,.03);
+  --shadow:rgba(6,22,45,.08);
+  --shadow-lg:rgba(6,22,45,.16);
+  /* The emphasis bands (.proof/.lead) are dark in BOTH themes — they carry
+     cream text either way. Flipping them with --ink would make them cream
+     bands full of cream text. */
+  --invert-bg:#06162d; --gold-soft:#e7cf70; --red:#ca2f1b; --green:#286d55;
+  --serif:'Fraunces',Georgia,serif; --sans:'Inter',system-ui,sans-serif; --mono:'JetBrains Mono',monospace;
+  color-scheme:light}
+
+/* ── Night ────────────────────────────────────────────────────────────────
+   Cool navy-black to match the day palette — the dark side of the Direct
+   Booking Desk scheme, not a warm brown. Every text token targets WCAG AA.
+   Gold lifts in the dark so it doesn't read as mud on black. */
+[data-theme="dark"]{
+  --paper:#0a0b0c;
+  --cream:#1d222d;
+  --ink:#eef1f6;
+  --muted:#8b93a3;
+  --line:#26303e;
+  --gold:#e7cf70;
+  --gold-ink:#e7cf70;
+  --gold-soft:#c9a227;
+  --red:#e2705a;
+  --green:#5aa882;
+  --nav-bg:rgba(10,11,12,.92);
+  --grid:rgba(238,241,246,.045);
+  --grid2:rgba(238,241,246,.038);
+  --shadow:rgba(0,0,0,.5);
+  --shadow-lg:rgba(0,0,0,.62);
+  --invert-bg:#221d16;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--paper);color:var(--ink);font:16px/1.6 var(--sans)}
+::selection{background:var(--gold-soft);color:var(--ink)}
+.wrap{width:min(1120px,calc(100% - 40px));margin:0 auto}
+h1,h2,h3{font-family:var(--serif);font-weight:500;letter-spacing:-.02em}
+.eyebrow{font:600 11px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--gold-ink);display:flex;align-items:center;gap:12px}
+.eyebrow::before{content:"";width:36px;height:1px;background:var(--gold)}
+section{padding:88px 0;border-bottom:1px solid var(--line)}
+
+nav{position:sticky;top:0;z-index:50;background:var(--nav-bg);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:66px}
+.brand{font:600 17px var(--serif);text-decoration:none;color:var(--ink);display:flex;align-items:center;gap:10px}
+.lamp{width:26px;height:26px;border:1.5px solid var(--ink);border-radius:50%;display:grid;place-items:center}
+.lamp::before{content:"";width:9px;height:9px;background:var(--gold);border-radius:50%}
+.nav-links{display:flex;gap:26px;align-items:center}
+.nav-links a{font:600 12.5px var(--sans);color:var(--muted);text-decoration:none}
+.nav-links a:hover{color:var(--ink)}
+.btn{display:inline-flex;align-items:center;gap:8px;background:var(--ink);color:var(--cream);font:600 13px var(--sans);padding:13px 22px;border:1px solid var(--ink);text-decoration:none;cursor:pointer;border-radius:0;transition:all .2s}
+.btn:hover{background:transparent;color:var(--ink)}
+.btn.gold{background:var(--gold);border-color:var(--gold)}
+.btn.gold:hover{background:transparent;color:var(--gold)}
+.btn.big{padding:17px 30px;font-size:14px}
+
+.hero{padding:96px 0 80px;position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,var(--grid) 1px,transparent 1px),linear-gradient(180deg,var(--grid2) 1px,transparent 1px);background-size:64px 64px;mask-image:linear-gradient(to bottom,black,transparent 80%)}
+.hero .wrap{position:relative}
+.hero h1{font-size:clamp(42px,6vw,74px);line-height:1.02;margin:26px 0 0;max-width:13ch}
+.hero h1 em{font-style:italic;color:var(--gold)}
+.hero p{margin-top:26px;max-width:56ch;font-size:18px;color:var(--muted);line-height:1.7}
+.hero p strong{color:var(--ink)}
+.hero-actions{display:flex;gap:14px;margin-top:36px;flex-wrap:wrap}
+.hero-note{margin-top:20px;font:600 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+
+/* calculator */
+.calc{background:var(--cream);border:1px solid var(--line);padding:44px;margin-top:56px;position:relative;box-shadow:0 24px 60px var(--shadow)}
+.calc h3{font-size:24px;margin-bottom:6px}
+.calc .sub{color:var(--muted);font-size:14px;margin-bottom:28px}
+.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
+.cinput{margin-bottom:20px}
+.cinput label{display:flex;justify-content:space-between;font:600 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.cinput label output{color:var(--ink);font-size:13px}
+input[type=range]{width:100%;accent-color:var(--gold);height:28px}
+.cresult{border-left:1px solid var(--line);padding-left:40px}
+.cresult .bleed{font:500 52px/1 var(--serif);color:var(--red);letter-spacing:-.02em}
+.cresult .per{color:var(--muted);font-size:13px;margin-top:6px}
+.cresult .keep{margin-top:24px;padding-top:22px;border-top:1px dashed var(--line)}
+.cresult .keep b{font:600 30px/1 var(--serif);color:var(--green)}
+.cresult .payback{margin-top:18px;font-size:14px;color:var(--ink)}
+.cresult .payback b{color:var(--gold-ink)}
+
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--line);margin-top:48px}
+.step{padding:34px 30px;border-right:1px solid var(--line);background:var(--cream)}
+.step:last-child{border-right:0}
+.step .n{font:600 13px var(--mono);color:var(--gold-ink);letter-spacing:.12em}
+.step h3{font-size:21px;margin:14px 0 10px}
+.step p{font-size:14px;color:var(--muted);line-height:1.65}
+
+/* proof strip */
+.proof{background:var(--invert-bg);color:var(--cream);border-bottom:1px solid var(--line)}
+.proof .wrap{padding:0}
+.proof-grid{display:grid;grid-template-columns:repeat(4,1fr)}
+.proof-item{padding:40px 30px;border-right:1px solid rgba(255,253,247,.12)}
+.proof-item:last-child{border-right:0}
+.proof-item b{display:block;font:500 38px/1 var(--serif);color:var(--gold-soft)}
+.proof-item span{display:block;margin-top:10px;font-size:12.5px;color:rgba(255,253,247,.62);line-height:1.5}
+.proof .cap{padding:0 0 34px;font:600 10.5px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:rgba(255,253,247,.4)}
+
+/* showcase */
+.showcase-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:52px;align-items:center;margin-top:48px}
+.shot{border:1px solid var(--line);box-shadow:0 30px 70px var(--shadow-lg)}
+.shot img{display:block;width:100%}
+.shot+.shot{margin-top:24px}
+.feat{display:flex;gap:16px;padding:16px 0;border-bottom:1px solid var(--line)}
+.feat:last-child{border-bottom:0}
+.feat .dot{flex-shrink:0;width:8px;height:8px;background:var(--gold);margin-top:8px}
+.feat b{display:block;font-size:15px}
+.feat span{font-size:13.5px;color:var(--muted);line-height:1.55}
+.powered{margin-top:22px;font:600 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+
+/* pricing */
+.ptable{width:100%;border-collapse:collapse;margin-top:44px;background:var(--cream);border:1px solid var(--line)}
+.ptable th{font:600 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:left;padding:16px 18px;border-bottom:1px solid var(--line);background:var(--paper)}
+.ptable td{padding:16px 18px;border-bottom:1px solid var(--line);font-size:14.5px;vertical-align:top}
+.ptable tr:last-child td{border-bottom:0}
+.ptable td b{font-family:var(--serif);font-size:17px}
+.ptable .rowhead{font-weight:700}
+.ptable small{display:block;color:var(--muted);font-size:12px;margin-top:4px;line-height:1.5}
+.amen{margin-top:22px;display:flex;gap:14px;flex-wrap:wrap}
+.amen .tag{border:1px solid var(--line);background:var(--cream);padding:10px 16px;font-size:13px}
+.amen .tag b{color:var(--gold-ink)}
+.hib{margin-top:26px;border:1px dashed var(--gold);padding:22px 26px;font-size:14.5px;line-height:1.65;background:rgba(201,162,39,.06)}
+.hib b{font-family:var(--serif);font-size:16px}
+
+/* form */
+.lead{background:var(--invert-bg);color:var(--cream);border-bottom:0}
+.lead h2{font-size:clamp(30px,4vw,44px);max-width:16ch}
+.lead .sub{color:rgba(255,253,247,.6);margin-top:14px;max-width:52ch;font-size:15px}
+.lform{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:40px;max-width:760px}
+.lform .full{grid-column:1/-1}
+.lform label{display:block;font:600 10px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:rgba(255,253,247,.55);margin-bottom:7px}
+.lform input,.lform select,.lform textarea{width:100%;background:rgba(255,253,247,.06);border:1px solid rgba(255,253,247,.22);color:var(--cream);padding:13px 14px;font:400 15px var(--sans);border-radius:0;outline:none}
+.lform input:focus,.lform select:focus{border-color:var(--gold-soft)}
+.lform select option{color:var(--ink)}
+.lmsg{margin-top:16px;font-size:14px;min-height:20px}
+.lmsg.ok{color:#9fd3b6}.lmsg.err{color:#f0a896}
+footer{padding:34px 0;color:var(--muted);font-size:12.5px}
+footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+@media(max-width:900px){.calc-grid,.showcase-grid{grid-template-columns:1fr}.cresult{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:28px}.steps{grid-template-columns:1fr}.step{border-right:0;border-bottom:1px solid var(--line)}.proof-grid{grid-template-columns:1fr 1fr}.proof-item{border-bottom:1px solid rgba(255,253,247,.12)}.lform{grid-template-columns:1fr}.nav-links a:not(.btn){display:none}}
+
+/* ── Theme toggle ─────────────────────────────────────────────────────── */
+.theme-btn{display:inline-flex;align-items:center;gap:7px;background:transparent;
+  border:1px solid var(--line);color:var(--muted);font:inherit;font-size:12px;
+  letter-spacing:.02em;padding:8px 13px;border-radius:999px;cursor:pointer;
+  transition:color .2s,border-color .2s,background .2s}
+.theme-btn:hover{color:var(--ink);border-color:var(--gold)}
+.theme-btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.theme-btn svg{width:15px;height:15px;flex:none}
+.theme-btn .lbl{white-space:nowrap}
+[data-theme="dark"] .theme-btn .sun{display:none}
+:root:not([data-theme="dark"]) .theme-btn .moon{display:none}
+@media(max-width:640px){.theme-btn .lbl{display:none}.theme-btn{padding:8px}}
+/* honour the system preference for motion on the cross-fade */
+@media(prefers-reduced-motion:no-preference){
+  html.theme-anim,html.theme-anim *{transition:background-color .25s ease,color .25s ease,border-color .25s ease}
+}
+</style>
+</head>
+<script>
+/* Resolve the theme before the first paint, otherwise a night visitor gets a
+   full-brightness flash of the light page before the toggle runs. */
+(function(){try{
+  var saved=localStorage.getItem('ll-theme');
+  var sys=window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if(saved==='dark'||(!saved&&sys))document.documentElement.setAttribute('data-theme','dark');
+}catch(e){}})();
+</script>
+<body>
+<nav><div class="wrap">
+  <a class="brand" href="#top"><span class="lamp"></span>Lobby Lamp</a>
+  <div class="nav-links">
+    <a href="#number">Your number</a><a href="#how">How it works</a><a href="#system">The system</a><a href="#pricing">Pricing</a><a href="demo.html">Demo</a>
+    <button class="theme-btn" id="themeBtn" type="button" aria-pressed="false"
+      aria-label="Switch between the day and night version of this page">
+      <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.4v2.2M12 19.4v2.2M4.2 12H2M22 12h-2.2M5.9 5.9 4.4 4.4M19.6 19.6l-1.5-1.5M18.1 5.9l1.5-1.5M4.4 19.6l1.5-1.5"/></svg>
+      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1Z"/></svg>
+      <span class="lbl">Night</span>
+    </button>
+    <a class="btn" href="#start">Get started</a>
+  </div>
+</div></nav>
+
+<section class="hero" id="top"><div class="wrap">
+  <div class="eyebrow">Direct booking for independent motels &amp; inns</div>
+  <h1>Stop paying Expedia <em>a full-time salary.</em></h1>
+  <p>Every OTA booking costs you 15–18%. We move your property onto <strong>your own direct-booking page</strong> — your name, your colors, your bank account — and run the ads that fill it. You keep the commission. You keep the guest list. You keep the keys.</p>
+  <div class="hero-actions">
+    <a class="btn gold big" href="#number">See your number</a>
+    <a class="btn big" href="#start" style="background:transparent;color:var(--ink)">Book a walkthrough</a>
+  </div>
+  <div class="hero-note">No contracts · You own everything · Seasonal properties welcome</div>
+
+  <div class="calc" id="number">
+    <h3>What are the OTAs costing you?</h3>
+    <div class="sub">Drag the sliders to your property. This is the math we'll do together on the first call — with your real statements.</div>
+    <div class="calc-grid">
+      <div>
+        <div class="cinput"><label>Rooms <output id="o-rooms">20</output></label><input type="range" id="r-rooms" min="6" max="60" value="20"></div>
+        <div class="cinput"><label>Average nightly rate <output id="o-adr">$125</output></label><input type="range" id="r-adr" min="60" max="400" step="5" value="125"></div>
+        <div class="cinput"><label>Occupancy <output id="o-occ">65%</output></label><input type="range" id="r-occ" min="20" max="95" value="65"></div>
+        <div class="cinput"><label>Share of bookings through OTAs <output id="o-ota">70%</output></label><input type="range" id="r-ota" min="10" max="100" step="5" value="70"></div>
+      </div>
+      <div class="cresult">
+        <div class="eyebrow" style="margin-bottom:14px">You donate, every year</div>
+        <div class="bleed" id="bleed">$0</div>
+        <div class="per" id="bleedper">— per month, at 18% commission</div>
+        <div class="keep"><div class="eyebrow" style="margin-bottom:10px">Shift 15% of bookings direct, keep</div><b id="keep">$0</b><span class="per"> a year, every year</span></div>
+        <div class="payback" id="payback"></div>
+      </div>
+    </div>
+  </div>
+</div></section>
+<section id="how"><div class="wrap">
+  <div class="eyebrow">How it works</div>
+  <h2 style="font-size:clamp(30px,4vw,44px);margin-top:18px;max-width:20ch">Three steps. You own all of it.</h2>
+  <div class="steps">
+    <div class="step"><div class="n">01 — THE BUILD</div><h3>Your page, built and proven</h3><p>We build your direct-booking page on The Continental — our own booking system — in your colors, with your rooms, your rates, your policies. Connected to your own Stripe account. Tested end to end before it goes live. Fixed price, fixed date.</p></div>
+    <div class="step"><div class="n">02 — YOURS</div><h3>You get the keys</h3><p>The page runs on a monthly subscription: tape-chart calendar, payments, reports, guest list — all yours. Manage it yourself, or let us drive. Cancel and you take every guest record with you. Your data leaves with you — one click, always.</p></div>
+    <div class="step"><div class="n">03 — GROW</div><h3>We fill it</h3><p>With Managed Growth we run the Google and Meta ads, watch the numbers, adjust rates seasonally, and sit down with you monthly. The headline of every report: <em>commission you didn't pay.</em></p></div>
+  </div>
+</div></section>
+
+<section class="proof"><div class="wrap">
+  <div style="padding-top:56px"><div class="eyebrow" style="color:var(--gold-soft)">Proof — The Alderwood Inn, first property on the system</div></div>
+  <div class="proof-grid" style="margin-top:26px">
+    <div class="proof-item"><b>$2,500</b><span>direct bookings in the first pilot run — commission-free</span></div>
+    <div class="proof-item"><b>12 stays</b><span>completed direct, zero OTA involvement</span></div>
+    <div class="proof-item"><b>12%</b><span>commission that would have been donated. It wasn't.</span></div>
+    <div class="proof-item"><b>12.7%</b><span>ad-to-booking conversion — 1,200 impressions, 63 clicks, 8 reservations, $1,070 booked</span></div>
+  </div>
+  <div class="cap">Pilot property, real numbers. Your statements will produce yours.</div>
+</div></section>
+
+<section id="system"><div class="wrap">
+  <div class="eyebrow">The system</div>
+  <h2 style="font-size:clamp(30px,4vw,44px);margin-top:18px;max-width:18ch">Powered by The Continental</h2>
+  <p style="margin-top:18px;max-width:60ch;color:var(--muted)">Our own booking platform — built for independent properties, not hotel chains. One page to run the whole desk. Guests book in one scroll. You see everything in one glance.</p>
+  <div class="hero-actions" style="margin-top:26px">
+    <a class="btn gold" href="demo.html#guest">Try the guest booking page</a>
+    <a class="btn" href="demo.html#demo" style="background:transparent;color:var(--ink)">Watch the 60-second walkthrough</a>
+  </div>
+  <div class="hero-note" style="margin-top:14px">A real working demo — not a video. Book a room, then open the front desk and watch it land.</div>
+  <div class="showcase-grid">
+    <div>
+      <div class="shot"><img src="assets/continental-guest.png" alt="The Continental guest booking page — one page, pick dates, pick a room, pay or pay on arrival" loading="lazy"></div>
+      <div class="shot"><img src="assets/continental-desk.png" alt="The Continental front desk tape chart — every room, every night, one page" loading="lazy"></div>
+    </div>
+    <div>
+      <div class="feat"><div class="dot"></div><div><b>One-page booking for guests</b><span>Dates, room, pay or pay-on-arrival — done. No accounts, no wizard, no friction.</span></div></div>
+      <div class="feat"><div class="dot"></div><div><b>Tape-chart calendar for you</b><span>Every room, every night. Click to book, double-click to close. Phone bookings and walk-ins land in the same place.</span></div></div>
+      <div class="feat"><div class="dot"></div><div><b>Your Stripe, your money</b><span>Guests pay you directly — full, deposit, or at the desk with a card held as security. We never hold funds. Ever.</span></div></div>
+      <div class="feat"><div class="dot"></div><div><b>Reports your accountant will actually open</b><span>Reconciliation, tax, finance, occupancy — every report downloads as CSV.</span></div></div>
+      <div class="feat"><div class="dot"></div><div><b>Sell more than rooms</b><span>Pet fees, late checkout, parking, dinner packages — add-ons guests tick at checkout. The OTA can never sell your restaurant.</span></div></div>
+      <div class="feat"><div class="dot"></div><div><b>The commission counter</b><span>Your dashboard shows what you didn't pay the OTAs this month. So does your guest's confirmation email.</span></div></div>
+      <div class="powered">The Continental · a Lobby Lamp system · your brand on it, not ours</div>
+    </div>
+  </div>
+</div></section>
+
+<section id="pricing"><div class="wrap">
+  <div class="eyebrow">Pricing</div>
+  <h2 style="font-size:clamp(30px,4vw,44px);margin-top:18px;max-width:20ch">Priced against what you stop losing</h2>
+  <p style="margin-top:16px;max-width:58ch;color:var(--muted)">Scaled to your property size. No per-booking fees from us, no percentage of your revenue, no surprise line items. The table below is the whole price list.</p>
+  <table class="ptable">
+    <thead><tr><th></th><th>1–12 rooms</th><th>13–25 rooms</th><th>26–40 rooms</th><th>40+</th></tr></thead>
+    <tbody>
+      <tr><td class="rowhead">The Build<small>One-time. Page, system, Stripe, training, go-live.</small></td><td><b>$1,299</b><small>or $799 + 6-month subscription</small></td><td><b>$2,500</b></td><td><b>$2,999</b></td><td><b>Quoted</b></td></tr>
+      <tr><td class="rowhead">Continental subscription<small>Monthly. Software, hosting, updates, support. Everyone.</small></td><td><b>$149</b>/mo</td><td><b>$199</b>/mo</td><td><b>$249</b>/mo</td><td><b>$299</b>/mo</td></tr>
+      <tr><td class="rowhead">Managed Growth<small>Optional add-on. We run the ads, watch the numbers, adjust rates, monthly call.</small></td><td><b>+$495</b>/mo</td><td><b>+$595</b>/mo</td><td><b>+$795</b>/mo</td><td><b>Quoted</b></td></tr>
+    </tbody>
+  </table>
+  <div class="amen">
+    <span class="tag">Restaurant / bar <b>+$95/mo</b></span>
+    <span class="tag">RV park / sites <b>+$95/mo</b></span>
+    <span class="tag">Other promoted amenity <b>+$95/mo</b></span>
+    <span class="tag">Amenity add-ons cap at <b>+$285/mo</b></span>
+  </div>
+  <div class="hib"><b>Seasonal? So are we.</b> If your property closes for winter, your subscription drops to <b>$59/mo</b> while you're dark — and your page stays live, selling gift certificates and next season's advance bookings while you're off. It wakes up with you in spring, automatically.</div>
+  <p style="margin-top:18px;font-size:13px;color:var(--muted)">Annual prepay available: two months free. Every plan: your data exports in one click, forever, no hostage-taking.</p>
+</div></section>
+
+<section class="lead" id="start"><div class="wrap">
+  <div class="eyebrow" style="color:var(--gold-soft)">Start here</div>
+  <h2>Tell us about your property. We'll reply with your number.</h2>
+  <p class="sub">No pitch deck, no pressure. We look at your property, run the savings math against your situation, and send you a straight answer. If the math doesn't work for you, we'll say so.</p>
+  <form class="lform" id="leadForm">
+    <div><label>Your name</label><input name="name" required autocomplete="name"></div>
+    <div><label>Property name</label><input name="propertyName" required></div>
+    <div><label>Email</label><input name="email" type="email" autocomplete="email"></div>
+    <div><label>Phone</label><input name="phone" type="tel" autocomplete="tel"></div>
+    <div><label>Town / region</label><input name="city" placeholder="e.g. Tonasket, WA"></div>
+    <div><label>Rooms</label><select name="rooms"><option value="">—</option><option value="10">1–12</option><option value="18">13–25</option><option value="33">26–40</option><option value="50">40+</option></select></div>
+    <div class="full"><label>How do most of your bookings come in today?</label><select name="otaShare"><option value="">—</option><option>Mostly Expedia / Booking.com</option><option>About half OTAs, half direct</option><option>Mostly phone / walk-in</option><option>We don't take online bookings at all</option></select></div>
+    <div class="full"><label>Anything else we should know? (optional)</label><textarea name="message" rows="3"></textarea></div>
+    <div style="display:none"><input name="website" tabindex="-1" autocomplete="off"></div>
+    <div class="full"><button class="btn gold big" type="submit">Send it — we reply within a day</button><div class="lmsg" id="lmsg"></div></div>
+  </form>
+</div></section>
+
+<footer><div class="wrap">
+  <span>© Lobby Lamp · Direct booking for independent properties</span>
+  <span>Built by a property owner who got tired of donating 18%.</span>
+</div></footer>
+
+<script>
+/* calculator — the two assumptions the whole pitch rests on, in one place */
+const COMMISSION=.18;   // blended OTA commission (canon: 18%)
+const SHIFT=.15;        // share of OTA bookings we move direct in year one (canon: 15%)
+const $=id=>document.getElementById(id);
+const money=n=>'$'+Math.round(n).toLocaleString('en-US');
+function calc(){
+  const rooms=+$('r-rooms').value, adr=+$('r-adr').value, occ=+$('r-occ').value/100, ota=+$('r-ota').value/100;
+  $('o-rooms').textContent=rooms; $('o-adr').textContent='$'+adr; $('o-occ').textContent=$('r-occ').value+'%'; $('o-ota').textContent=$('r-ota').value+'%';
+  const annual=rooms*adr*365*occ*ota*COMMISSION;
+  $('bleed').textContent=money(annual);
+  $('bleedper').textContent=money(annual/12)+' per month, at '+Math.round(COMMISSION*100)+'% commission';
+  const keepers=annual*SHIFT; // shift this share of bookings direct → keep that commission
+  $('keep').textContent=money(keepers);
+  const fee=rooms<=12?1299:rooms<=25?2500:2999;
+  const months=keepers/12>0?(fee/(keepers/12)):0;
+  $('payback').innerHTML=keepers>0?`A <b>${money(fee)}</b> build pays for itself in about <b>${months<1?'<1':months.toFixed(1)} months</b> — then the savings are yours, every month after.`:'';
+}
+['r-rooms','r-adr','r-occ','r-ota'].forEach(id=>$(id).addEventListener('input',calc));calc();
+
+/* lead form → Lobby Lamp CRM */
+const LEAD_ENDPOINT='https://lobbylampcrm.kimi.pro/api/public/lead';
+/* crypto.randomUUID only exists in a secure context — over plain http, or from
+   a file:// preview, it is undefined and every submission fell into the catch
+   and told the visitor the form was broken. */
+const uuid=()=>(self.crypto&&crypto.randomUUID)?crypto.randomUUID()
+  :'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return (c==='x'?r:(r&0x3|0x8)).toString(16)});
+document.getElementById('leadForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const f=e.target, m=$('lmsg');
+  if(f.website.value){m.textContent='';return} // honeypot
+  const data={name:f.name.value.trim(),propertyName:f.propertyName.value.trim(),email:f.email.value.trim(),phone:f.phone.value.trim(),city:f.city.value.trim(),rooms:f.rooms.value?parseInt(f.rooms.value,10):null,otaShare:f.otaShare.value,message:f.message.value.trim()};
+  if(!data.email&&!data.phone){m.className='lmsg err';m.textContent='Leave an email or a phone number so we can reply.';return}
+  const attr=new URLSearchParams(location.search);const src=['utm_source','utm_medium','utm_campaign','gclid','fbclid'].map(k=>attr.get(k)&&k+'='+attr.get(k)).filter(Boolean).join('&');
+  data.source=('form/lobbylamp.com'+(src?'/'+src:'')).slice(0,80);
+  m.className='lmsg';m.textContent='Sending…';
+  try{
+    const btn=f.querySelector('button[type=submit],button:not([type])');if(btn)btn.disabled=true;
+    const r=await fetch(LEAD_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json','Idempotency-Key':uuid()},body:JSON.stringify(data)});
+    const j=await r.json().catch(()=>({}));
+    if(btn)btn.disabled=false;
+    if(r.ok&&j.ok){m.className='lmsg ok';m.textContent="Got it — you'll hear from Ben within a day.";f.reset()}else throw 0;
+  }catch(_){const btn=f.querySelector('button[type=submit],button:not([type])');if(btn)btn.disabled=false;
+    m.className='lmsg err';m.innerHTML='Something hiccuped — email us instead: <a href="mailto:ben@lobbylamp.com" style="color:#e7cf70">ben@lobbylamp.com</a>'}
+});
+</script>
+<script>
+/* Theme toggle. Default follows the operating system; an explicit choice is
+   remembered. The label names the mode you are switching TO, not the one you
+   are in — that is the question a person is actually asking of the button. */
+(function(){
+  var root=document.documentElement, btn=document.getElementById('themeBtn');
+  if(!btn)return;
+  var mq=window.matchMedia('(prefers-color-scheme: dark)');
+  function isDark(){return root.getAttribute('data-theme')==='dark'}
+  function paint(){
+    var d=isDark();
+    btn.setAttribute('aria-pressed',String(d));
+    btn.querySelector('.lbl').textContent=d?'Day':'Night';
+  }
+  function set(dark,remember){
+    root.classList.add('theme-anim');
+    if(dark)root.setAttribute('data-theme','dark'); else root.removeAttribute('data-theme');
+    if(remember){try{localStorage.setItem('ll-theme',dark?'dark':'light')}catch(e){}}
+    paint();
+    setTimeout(function(){root.classList.remove('theme-anim')},300);
+  }
+  btn.addEventListener('click',function(){set(!isDark(),true)});
+  /* Follow the system only while the visitor has not chosen for themselves. */
+  mq.addEventListener&&mq.addEventListener('change',function(e){
+    var saved=null; try{saved=localStorage.getItem('ll-theme')}catch(_){}
+    if(!saved)set(e.matches,false);
+  });
+  paint();
+})();
+</script>
+</body>
+</html>
